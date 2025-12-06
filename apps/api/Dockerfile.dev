@@ -1,0 +1,18 @@
+FROM node:20-alpine3.18
+
+WORKDIR /api
+
+# Install deps (dev + prod)
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy source (will be overridden by volume in docker-compose)
+COPY . .
+
+ENV NODE_ENV=development
+ENV PORT=8080
+
+EXPOSE 8080
+
+# Use your dev script (Nest: start:dev, or ts-node, etc)
+CMD ["npm", "run", "start:dev"]

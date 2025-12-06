@@ -80,6 +80,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     eas: {
       projectId: "79c33ca8-d53b-4e5b-98f1-96603c1dc376",
     },
+    apiUrl: process.env.API_URL || "https://1cfa572a4044.ngrok-free.app/api",
   },
   owner: "baobab_software",
 });
