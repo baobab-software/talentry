@@ -20,14 +20,14 @@ const OnboardingScreen = ({ onComplete }: OnboardingScreenProps) => {
     if (onComplete) {
       await onComplete();
     }
-    router.push("/RegisterScreen");
+    router.push("/(auth)/RegisterScreen");
   };
 
   const handleLogin = async () => {
     if (onComplete) {
       await onComplete();
     }
-    router.push("/LoginScreen");
+    router.push("/(auth)/LoginScreen");
   };
 
   return (

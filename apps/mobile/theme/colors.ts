@@ -1,7 +1,13 @@
 export const colors = {
   // Primary colors
-  primary: "#000000",
-  primaryDark: "#1a1a1a",
+  primary: "#076ae0",
+  primaryDark: "#0554b8",
+  primaryLight: "#3d8ee8",
+  
+  // Secondary colors
+  secondary: "#ffb800",
+  secondaryDark: "#e6a600",
+  secondaryLight: "#ffc633",
   
   // Background colors
   background: "#FFFFFF",
@@ -25,10 +31,10 @@ export const colors = {
   inputBackground: "#FAFAFA",
   
   // Button colors
-  buttonPrimary: "#FFD60A",
+  buttonPrimary: "#ffb800",
   buttonSecondary: "#ffffff",
   buttonText: "#FFFFFF",
-  buttonTextSecondary: "#1a1a1a",
+  buttonTextSecondary: "#000000",
   buttonDisabled: "#CCCCCC",
   
   // Social colors

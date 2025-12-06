@@ -4,20 +4,27 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack, useRootNavigationState } from "expo-router";
+import {
+  Stack,
+  useRootNavigationState,
+  usePathname,
+  useSegments,
+  useRouter,
+} from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, View, StyleSheet } from "react-native";
 import "react-native-reanimated";
 
 import { Colors } from "@/constants/colors";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuthContext } from "@/contexts/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import {
   isOnboardingCompleted,
   markOnboardingAsCompleted,
 } from "@/utils/onboarding";
 import OnboardingScreen from "./OnboardingScreen";
+import BottomNav from "@/components/ui/BottomNav";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,8 +38,62 @@ const queryClient = new QueryClient({
   },
 });
 
-export default function RootLayout() {
+const RootLayoutNav = () => {
   const colorScheme = useColorScheme();
+  const segments = useSegments();
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuthContext();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+    const inHomeGroup = segments[0] === "(home)";
+
+    if (isAuthenticated) {
+      if (inAuthGroup) {
+        router.replace("/(home)/HomeScreen");
+      }
+    } else {
+      if (inHomeGroup) {
+        router.replace("/(auth)/LoginScreen");
+      }
+    }
+  }, [isAuthenticated, segments, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <View style={{ flex: 1 }}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: "#ffffff" },
+          }}
+        >
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(home)" options={{ headerShown: false }} />
+          <Stack.Screen name="(settings)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="OnboardingScreen"
+            options={{ headerShown: false }}
+          />
+        </Stack>
+        {isAuthenticated && <BottomNav />}
+        <StatusBar style="auto" />
+      </View>
+    </ThemeProvider>
+  );
+};
+
+export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const navigationReady = useRootNavigationState()?.key != null;
@@ -43,7 +104,6 @@ export default function RootLayout() {
         const completed = await isOnboardingCompleted();
         setShowOnboarding(!completed);
       } catch (error) {
-        console.error("Error checking onboarding:", error);
         setShowOnboarding(true);
       } finally {
         setIsLoading(false);
@@ -82,31 +142,17 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: "#ffffff" },
-            }}
-          >
-            <Stack.Screen
-              name="(auth)"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="(home)"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="OnboardingScreen"
-              options={{ headerShown: false }}
-            />
-          </Stack>
-          <StatusBar style="auto" />
-        </ThemeProvider>
+        <RootLayoutNav />
       </AuthProvider>
     </QueryClientProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.background,
+  },
+});

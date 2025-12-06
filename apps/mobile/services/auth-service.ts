@@ -181,7 +181,12 @@ export const authService = {
 
   getCurrentUser: async (): Promise<any> => {
     try {
-      const response = await apiClient.get("/auth/me");
+      const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
+      const response = await apiClient.get("/auth/me", {
+        headers: {
+          "x-authorization": accessToken ? `Bearer ${accessToken}` : undefined,
+        },
+      });
       return response.data;
     } catch (error) {
       throw error;
