@@ -1,4 +1,5 @@
 import { useAuthAnimations } from "@/hooks/use-auth-animations";
+import { router } from "expo-router";
 import React from "react";
 import {
   Animated,
@@ -15,14 +16,14 @@ interface OnboardingScreenProps {
 const OnboardingScreen = ({ onComplete }: OnboardingScreenProps) => {
   const { logoFadeAnim, formSlideAnim, formFadeAnim } = useAuthAnimations();
 
-  const handleGetStarted = () => {
-    onComplete();
-    // router.push("/screens/(auth)/RegisterScreen");
+  const handleGetStarted = async () => {
+    await onComplete();
+    router.push("/RegisterScreen");
   };
 
-  const handleLogin = () => {
-    onComplete();
-    // router.push("/screens/(auth)/LoginScreen");
+  const handleLogin = async () => {
+    await onComplete();
+    router.push("/LoginScreen");
   };
 
   return (

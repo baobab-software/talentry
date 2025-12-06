@@ -1,25 +1,35 @@
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRootNavigationState } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 import "react-native-reanimated";
 
+import { Colors } from "@/constants/colors";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import OnboardingScreen from "./OnboardingScreen";
 import {
   isOnboardingCompleted,
   markOnboardingAsCompleted,
 } from "@/utils/onboarding";
-import { Colors } from "@/constants/colors";
+import OnboardingScreen from "./OnboardingScreen";
 
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 5 * 60 * 1000,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -70,15 +80,33 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="modal"
-          options={{ presentation: "modal", title: "Modal" }}
-        />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: "#ffffff" },
+            }}
+          >
+            <Stack.Screen
+              name="(auth)"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="(home)"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="OnboardingScreen"
+              options={{ headerShown: false }}
+            />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
