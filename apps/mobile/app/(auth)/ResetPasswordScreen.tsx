@@ -27,7 +27,6 @@ const ResetPasswordScreen = () => {
     email?: string;
   }>();
 
-  // Handle both array and string cases for route params
   const resetTokenParam = Array.isArray(params.resetToken)
     ? params.resetToken[0]
     : params.resetToken;
@@ -57,12 +56,10 @@ const ResetPasswordScreen = () => {
       setConfirmPassword(value);
     }
 
-    // Clear error for the field being edited
     if (errors[field]) {
       setErrors({ ...errors, [field]: undefined });
     }
 
-    // Clear auth error when user starts typing
     if (error) {
       clearError();
     }

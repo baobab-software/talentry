@@ -17,12 +17,16 @@ const OnboardingScreen = ({ onComplete }: OnboardingScreenProps) => {
   const { logoFadeAnim, formSlideAnim, formFadeAnim } = useAuthAnimations();
 
   const handleGetStarted = async () => {
-    await onComplete();
+    if (onComplete) {
+      await onComplete();
+    }
     router.push("/RegisterScreen");
   };
 
   const handleLogin = async () => {
-    await onComplete();
+    if (onComplete) {
+      await onComplete();
+    }
     router.push("/LoginScreen");
   };
 

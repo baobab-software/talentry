@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useAuthAnimations } from "@/hooks/use-auth-animations";
-import { ForgotPasswordFormData, forgotPasswordSchema } from "@/schemas/auth";
+import { forgotPasswordSchema, type ForgotPasswordData } from "@talentry/validation";
 import { authStyles, colors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,7 +40,7 @@ const ForgotPasswordScreen = () => {
     handleSubmit,
     formState: { errors },
     getValues,
-  } = useForm<ForgotPasswordFormData>({
+  } = useForm<ForgotPasswordData>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: "",
@@ -48,12 +48,11 @@ const ForgotPasswordScreen = () => {
   });
 
   const forgotPasswordMutation = useMutation({
-    mutationFn: async (data: ForgotPasswordFormData) => {
+    mutationFn: async (data: ForgotPasswordData) => {
       return await forgotPassword({ email: data.email });
     },
     onSuccess: (success) => {
       if (success) {
-        // Navigate to OTP verification screen with email
         router.push({
           pathname: "/OTPVerificationScreen",
           params: { email: getValues("email") },
@@ -65,7 +64,7 @@ const ForgotPasswordScreen = () => {
     },
   });
 
-  const handleSubmitForm = (data: ForgotPasswordFormData) => {
+  const handleSubmitForm = (data: ForgotPasswordData) => {
     clearError();
     forgotPasswordMutation.mutate(data);
   };

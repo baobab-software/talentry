@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useAuthAnimations } from "@/hooks/use-auth-animations";
 import { LoginRequest } from "@/interfaces";
-import { LoginFormData, loginSchema } from "@/schemas/auth";
+import { loginSchema, type LoginData } from "@talentry/validation";
 import { authStyles } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,7 +40,7 @@ const LoginScreen = () => {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<LoginFormData>({
+  } = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -49,7 +49,7 @@ const LoginScreen = () => {
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (data: LoginFormData) => {
+    mutationFn: async (data: LoginData) => {
       const loginData: LoginRequest = {
         email: data.email,
         password: data.password,
@@ -67,7 +67,7 @@ const LoginScreen = () => {
     },
   });
 
-  const handleSignIn = (data: LoginFormData) => {
+  const handleSignIn = (data: LoginData) => {
     clearError();
     loginMutation.mutate(data);
   };

@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useAuthAnimations } from "@/hooks/use-auth-animations";
 import { RegisterRequest } from "@/interfaces";
-import { RegisterFormData, registerSchema } from "@/schemas/auth";
+import { candidateRegisterSchema, type CandidateRegisterData } from "@talentry/validation";
 import { authStyles } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,8 +40,8 @@ const RegisterScreen = () => {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<CandidateRegisterData>({
+    resolver: zodResolver(candidateRegisterSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -52,7 +52,7 @@ const RegisterScreen = () => {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (data: RegisterFormData) => {
+    mutationFn: async (data: CandidateRegisterData) => {
       const registerData: RegisterRequest = {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -76,7 +76,7 @@ const RegisterScreen = () => {
     },
   });
 
-  const handleSignUp = (data: RegisterFormData) => {
+  const handleSignUp = (data: CandidateRegisterData) => {
     clearError();
     registerMutation.mutate(data);
   };
