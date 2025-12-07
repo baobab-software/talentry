@@ -3,16 +3,13 @@
   "version": "1.0.0",
   "type": "commonjs",
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
-    "validation:build": "npm run build --workspace=@talentry/validation",
-    "validation:test": "npm run test --workspace=@talentry/validation"
+    "dev": "turbo run dev --filter=./apps/*",
+    "build": "turbo run build --filter=./apps/*",
+    "lint": "turbo run lint --filter=./apps/*",
+    "test": "turbo run test --filter=./apps/*"
   },
   "packageManager": "npm@10.5.0",
   "devDependencies": {
-    "@types/express-serve-static-core": "^4.19.0",
     "turbo": "^2.6.3"
   },
   "workspaces": [
