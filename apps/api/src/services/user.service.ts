@@ -1,30 +1,32 @@
-import { ServiceError } from '@work-whiz/errors';
-import { IUserService, IUser } from '@work-whiz/interfaces';
-import { redis } from '@work-whiz/libs';
-import { userRepository } from '@work-whiz/repositories';
-import { passwordUtil } from '@work-whiz/utils';
+import { ServiceError } from '@api/errors';
+import { IUserService } from '@api/interfaces';
+import { redis } from '@api/libs';
+import { IUser } from '@talentry/types/api';
+import { userRepository } from '@api/repositories';
+import { passwordUtil } from '@api/utils';
 import { StatusCodes } from 'http-status-codes';
 import { BaseService } from './base.service';
+import { UsersUpdateInput } from '@api/generated/prisma/models';
 
 /**
  * User service handling user-related operations like contact update,
  * password update, and account deletion.
  */
-class Userservice extends BaseService implements IUserService {
-  private static instance: Userservice;
+class UserService extends BaseService implements IUserService {
+  private static instance: UserService;
 
   private constructor() {
     super();
   }
 
   /**
-   * Returns the singleton instance of Userservice.
+   * Returns the singleton instance of UserService.
    */
-  public static getInstance(): Userservice {
-    if (!Userservice.instance) {
-      Userservice.instance = new Userservice();
+  public static getInstance(): UserService {
+    if (!UserService.instance) {
+      UserService.instance = new UserService();
     }
-    return Userservice.instance;
+    return UserService.instance;
   }
 
   /**
@@ -77,7 +79,7 @@ class Userservice extends BaseService implements IUserService {
         });
       }
 
-      const payload: Partial<IUser> = {};
+      const payload: UsersUpdateInput = {};
       if (email) payload.email = email;
       if (phone) payload.phone = phone;
 
@@ -170,4 +172,4 @@ class Userservice extends BaseService implements IUserService {
     }, this.deleteAccount.name);
 }
 
-export const userService = Userservice.getInstance();
+export const userService = UserService.getInstance();
