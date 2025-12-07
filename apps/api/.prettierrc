@@ -1,4 +1,19 @@
 {
   "singleQuote": true,
-  "trailingComma": "all"
+  "semicolon": true,
+  "trailingComma": "all",
+  "tabWidth": 2,
+  "printWidth": 80,
+  "arrowParens": "avoid",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "endOfLine": "lf",
+  "quoteProps": "as-needed",
+  "jsxSingleQuote": false,
+  "htmlWhitespaceSensitivity": "ignore",
+  "vueIndentScriptAndStyle": false,
+  "embeddedLanguageFormatting": "auto",
+  "proseWrap": "preserve",
+  "requireConfig": false,
+  "ignorePath": ".prettierignore"
 }
