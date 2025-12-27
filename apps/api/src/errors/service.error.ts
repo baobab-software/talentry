@@ -1,4 +1,4 @@
-import { IServiceErrorDetails } from '@work-whiz/interfaces';
+import { IServiceErrorDetails } from '@/interfaces';
 
 export class ServiceError extends Error {
   public readonly statusCode: number;

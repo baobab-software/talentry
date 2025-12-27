@@ -1,4 +1,4 @@
-import { IPaginationQueryOptions } from '@work-whiz/interfaces';
+import { IPaginationQueryOptions } from '@/interfaces';
 
 /**
  * Pagination configuration with defaults and validation

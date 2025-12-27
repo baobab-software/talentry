@@ -1,35 +1,24 @@
-/* This TypeScript code snippet is defining an application configuration object named `config` that
-contains various settings and values for different parts of the application. */
-import { IConfig } from '@work-whiz/interfaces';
+import { IConfig } from "@/interfaces";
 
 const {
-  // Authentication Secrets
   API_SECRET_KEY,
   ADMIN_ACCESS_KEY,
-  EMPLOYER_ACCESS_KEY,
-  CANDIDATE_ACCESS_KEY,
+  COMPANY_ACCESS_KEY,
+  SEEKER_ACCESS_KEY,
   ADMIN_REFRESH_ACCESS_KEY,
-  EMPLOYER_REFRESH_ACCESS_KEY,
-  CANDIDATE_REFRESH_ACCESS_KEY,
+  COMPANY_REFRESH_ACCESS_KEY,
+  SEEKER_REFRESH_ACCESS_KEY,
 
-  // Argon2 Pepper Values
   ADMIN_ARGON2_PEPPER,
-  EMPLOYER_ARGON2_PEPPER,
-  CANDIDATE_ARGON2_PEPPER,
+  COMPANY_ARGON2_PEPPER,
+  SEEKER_ARGON2_PEPPER,
 
-  // Password Templates
   ADMIN_PASSWORD_RESET,
   ADMIN_PASSWORD_SETUP,
-  EMPLOYER_PASSWORD_RESET,
-  EMPLOYER_PASSWORD_SETUP,
-  CANDIDATE_PASSWORD_RESET,
-  CANDIDATE_PASSWORD_SETUP,
-
-  // Database Configuration
-  POSTGRES_DATABASE_NAME,
-  POSTGRES_HOST,
-  POSTGRES_PASSWORD,
-  POSTGRES_USERNAME,
+  COMPANY_PASSWORD_RESET,
+  COMPANY_PASSWORD_SETUP,
+  SEEKER_PASSWORD_RESET,
+  SEEKER_PASSWORD_SETUP,
 
   // Redis Configuration
   REDIS_HOST,
@@ -55,15 +44,15 @@ const {
 
   // Frontend URLs
   ADMIN_FRONTEND,
-  CANDIDATE_FRONTEND,
-  EMPLOYER_FRONTEND,
+  SEEKER_FRONTEND,
+  COMPANY_FRONTEND,
 } = process.env;
 
 /**
  * Application configuration object.
  * @type {IConfig}
  */
-export const config: IConfig = {
+export const config = {
   authentication: {
     api: {
       secret: API_SECRET_KEY,
@@ -72,41 +61,85 @@ export const config: IConfig = {
       admin: {
         pepper: ADMIN_ARGON2_PEPPER,
       },
-      employer: {
-        pepper: EMPLOYER_ARGON2_PEPPER,
+      company: {
+        pepper: COMPANY_ARGON2_PEPPER,
       },
-      candidate: {
-        pepper: CANDIDATE_ARGON2_PEPPER,
+      seeker: {
+        pepper: SEEKER_ARGON2_PEPPER,
       },
     },
     jwt: {
+      // Default secret (fallback)
+      secret: process.env.JWT_SECRET || "your-default-secret-key",
+
+      // Admin role JWT config
       admin: {
-        access: ADMIN_ACCESS_KEY,
-        refresh: ADMIN_REFRESH_ACCESS_KEY,
-        password_setup: ADMIN_PASSWORD_SETUP,
-        password_reset: ADMIN_PASSWORD_RESET,
+        accessTokenSecret:
+          process.env.JWT_ADMIN_ACCESS_SECRET ||
+          process.env.JWT_SECRET ||
+          "admin-access-secret",
+        accessTokenExpiration:
+          process.env.JWT_ADMIN_ACCESS_EXPIRATION || "15m",
+        refreshTokenSecret:
+          process.env.JWT_ADMIN_REFRESH_SECRET ||
+          process.env.JWT_SECRET ||
+          "admin-refresh-secret",
+        refreshTokenExpiration:
+          process.env.JWT_ADMIN_REFRESH_EXPIRATION || "7d",
+        passwordResetTokenSecret:
+          process.env.JWT_ADMIN_PASSWORD_RESET_SECRET ||
+          process.env.JWT_SECRET ||
+          "admin-password-reset-secret",
+        passwordResetTokenExpiration:
+          process.env.JWT_ADMIN_PASSWORD_RESET_EXPIRATION || "15m",
       },
-      employer: {
-        access: EMPLOYER_ACCESS_KEY,
-        refresh: EMPLOYER_REFRESH_ACCESS_KEY,
-        password_setup: EMPLOYER_PASSWORD_SETUP,
-        password_reset: EMPLOYER_PASSWORD_RESET,
+
+      // Seeker role JWT config
+      seeker: {
+        accessTokenSecret:
+          process.env.JWT_SEEKER_ACCESS_SECRET ||
+          process.env.JWT_SECRET ||
+          "seeker-access-secret",
+        accessTokenExpiration:
+          process.env.JWT_SEEKER_ACCESS_EXPIRATION || "15m",
+        refreshTokenSecret:
+          process.env.JWT_SEEKER_REFRESH_SECRET ||
+          process.env.JWT_SECRET ||
+          "seeker-refresh-secret",
+        refreshTokenExpiration:
+          process.env.JWT_SEEKER_REFRESH_EXPIRATION || "7d",
+        passwordResetTokenSecret:
+          process.env.JWT_SEEKER_PASSWORD_RESET_SECRET ||
+          process.env.JWT_SECRET ||
+          "seeker-password-reset-secret",
+        passwordResetTokenExpiration:
+          process.env.JWT_SEEKER_PASSWORD_RESET_EXPIRATION || "15m",
       },
-      candidate: {
-        access: CANDIDATE_ACCESS_KEY,
-        refresh: CANDIDATE_REFRESH_ACCESS_KEY,
-        password_setup: CANDIDATE_PASSWORD_SETUP,
-        password_reset: CANDIDATE_PASSWORD_RESET,
+
+      // Company role JWT config
+      company: {
+        accessTokenSecret:
+          process.env.JWT_COMPANY_ACCESS_SECRET ||
+          process.env.JWT_SECRET ||
+          "company-access-secret",
+        accessTokenExpiration:
+          process.env.JWT_COMPANY_ACCESS_EXPIRATION || "15m",
+        refreshTokenSecret:
+          process.env.JWT_COMPANY_REFRESH_SECRET ||
+          process.env.JWT_SECRET ||
+          "company-refresh-secret",
+        refreshTokenExpiration:
+          process.env.JWT_COMPANY_REFRESH_EXPIRATION || "7d",
+        passwordResetTokenSecret:
+          process.env.JWT_COMPANY_PASSWORD_RESET_SECRET ||
+          process.env.JWT_SECRET ||
+          "company-password-reset-secret",
+        passwordResetTokenExpiration:
+          process.env.JWT_COMPANY_PASSWORD_RESET_EXPIRATION || "15m",
       },
     },
   },
   database: {
-    postgres: {
-      databaseName: POSTGRES_DATABASE_NAME,
-      username: POSTGRES_USERNAME,
-      password: POSTGRES_PASSWORD,
-      host: POSTGRES_HOST,
-    },
     redis: {
       host: REDIS_HOST,
       port: REDIS_PORT ? parseInt(REDIS_PORT, 10) : 6379,
@@ -115,8 +148,8 @@ export const config: IConfig = {
   },
   frontend: {
     admin: ADMIN_FRONTEND,
-    candidate: CANDIDATE_FRONTEND,
-    employer: EMPLOYER_FRONTEND,
+    seeker: SEEKER_FRONTEND,
+    company: COMPANY_FRONTEND,
   },
   logger: {
     logtail: {

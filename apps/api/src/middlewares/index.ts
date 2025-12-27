@@ -1,8 +1,8 @@
-export { configureMiddlewares } from './app.middleware';
+export { configureMiddlewares } from "./app.middleware";
 
-export { authenticationMiddleware } from './authentication.middleware';
+export { authenticationMiddleware } from "./authentication.middleware";
 
-export { authorizationMiddleware } from './authorization.middleware';
+export { authorizationMiddleware } from "./authorization.middleware";
 
 export {
   profileLimiter,
@@ -12,6 +12,6 @@ export {
   logoutLimiter,
   forgotPasswordLimiter,
   resetPasswordLimiter,
-} from './rate-limiter.middleware';
+} from "./rate-limiter.middleware";
 
-export { userAgentParser } from './user-agent.middleware';
+export { userAgentParser } from "./user-agent.middleware";

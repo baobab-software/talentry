@@ -1,13 +1,9 @@
-/**
- * Main application entry point
- * Configures Express server with middlewares and starts the server
- */
-import 'reflect-metadata';
-import express, { Application } from 'express';
-import dotenv from 'dotenv';
-import { cleanEnv, num } from 'envalid';
-import { configureMiddlewares } from '@work-whiz/middlewares';
-import { startServer } from './server';
+import "reflect-metadata";
+import express, { Application } from "express";
+import dotenv from "dotenv";
+import { cleanEnv, num } from "envalid";
+import { configureMiddlewares } from "@/middlewares";
+import { startServer } from "@/server";
 
 const env = cleanEnv(dotenv.config().parsed || process.env, {
   PORT: num({ default: 3000 }),
@@ -18,17 +14,10 @@ const env = cleanEnv(dotenv.config().parsed || process.env, {
 const app: Application = express();
 
 const bootstrap = async (): Promise<void> => {
-  /**
-   * Configures application middlewares
-   * @param {Application} app - Express application instance
-   */
   await configureMiddlewares(app);
 
-  // Start server with error handling
   await startServer(app, {
     port: env.PORT,
-    syncDatabase: true,
-    forceSync: false,
     enableClusterMode: true,
     rateLimitOptions: {
       windowMs: env.RATE_LIMIT_WINDOW_MS,
@@ -37,7 +26,7 @@ const bootstrap = async (): Promise<void> => {
   });
 };
 
-bootstrap().catch(error => {
-  console.error('Failed to start server:', error);
+bootstrap().catch((error) => {
+  console.error("Failed to start server:", error);
   process.exit(1);
 });

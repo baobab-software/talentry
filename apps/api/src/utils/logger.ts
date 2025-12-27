@@ -1,7 +1,7 @@
 import winston, { Logger, createLogger } from 'winston';
 import { Logtail } from '@logtail/node';
 import { LogtailTransport } from '@logtail/winston';
-import { config } from '@work-whiz/configs/config';
+import { config } from '@/configs/config';
 
 type Environment = 'development' | 'production';
 type LoggerAccessToken = string;

@@ -1,8 +1,8 @@
 /**
  * Notification utility class for sending emails.
  */
-import { config } from '@work-whiz/configs/config';
-import { notificationLib } from '@work-whiz/libs';
+import { config } from '@/configs/config';
+import { notificationLib } from '@/libs';
 import { logger } from './logger';
 
 export default class NotificationUtil {

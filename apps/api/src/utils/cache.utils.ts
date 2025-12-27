@@ -1,4 +1,4 @@
-import { redis } from '@work-whiz/libs';
+import { redis } from '@/libs';
 
 /**
  * Utility class for interacting with Redis cache.

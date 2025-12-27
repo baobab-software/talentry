@@ -1,6 +1,6 @@
 import * as argon2 from 'argon2';
 import axios from 'axios';
-import { config } from '@work-whiz/configs/config';
+import { config } from '@/configs/config';
 
 class PasswordUtil {
   private static instance: PasswordUtil;
@@ -18,9 +18,10 @@ class PasswordUtil {
 
   public async hashSync(role: string, password: string): Promise<string> {
     try {
-      const pepper = config?.authentication?.argon[role]?.pepper;
+      const normalizedRole = role.toLowerCase();
+      const pepper = config?.authentication?.argon[normalizedRole]?.pepper;
       if (!pepper) {
-        throw new Error(`Missing secret (pepper).`);
+        throw new Error(`Missing secret (pepper) for role: ${role}`);
       }
       const secret = Buffer.from(pepper);
 
@@ -36,10 +37,12 @@ class PasswordUtil {
     hashed: string,
   ): Promise<boolean> {
     try {
-      const secret = Buffer.from(config?.authentication?.argon[role]?.pepper);
-      if (!secret) {
-        throw new Error(`Missing secret (pepper).`);
+      const normalizedRole = role.toLowerCase();
+      const pepper = config?.authentication?.argon[normalizedRole]?.pepper;
+      if (!pepper) {
+        throw new Error(`Missing secret (pepper) for role: ${role}`);
       }
+      const secret = Buffer.from(pepper);
 
       return await argon2.verify(hashed, plain, { secret });
     } catch (error) {

@@ -1,12 +1,9 @@
-import { z } from 'zod';
-import { emailSchema } from '../shared/email.schema';
+import { z } from "zod";
 
-/**
- * Forgot password schema
- * Requires only email
- */
-export const forgotPasswordSchema = z.object({
-  email: emailSchema,
+export const ForgotPasswordSchema = z.object({
+  email: z
+    .string({ required_error: "Email is required" })
+    .email({ message: "Please provide a valid email address" }),
 });
 
-export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
+export type ForgotPassword = z.infer<typeof ForgotPasswordSchema>;

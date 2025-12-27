@@ -1,5 +1,6 @@
-import { StatusCodes } from 'http-status-codes';
-import { ServiceError } from '@work-whiz/errors';
+import { StatusCodes } from "http-status-codes";
+import { ServiceError } from "@/errors";
+import { logger } from "@/libs";
 
 /**
  * Base service class providing shared utilities for all services.
@@ -14,21 +15,29 @@ export class BaseService {
    */
   protected async handleErrors<T>(
     fn: () => Promise<T>,
-    method: string,
+    method: string
   ): Promise<T> {
     try {
       return await fn();
     } catch (error) {
-      console.error(`[Service Error] ${method}:`, error);
+      // Log the actual error for debugging
+      if (error instanceof ServiceError) {
+        logger.error(`[${method}] Service error:`, {
+          message: error.message,
+          statusCode: error.statusCode,
+        });
+        throw error;
+      }
 
-      if (error instanceof ServiceError) throw error;
+      // Log unexpected errors with full stack trace
+      logger.error(`[${method}] Unexpected error: ${error.message}`, error);
 
       throw new ServiceError(StatusCodes.INTERNAL_SERVER_ERROR, {
-        message: 'An unexpected error occurred.',
+        message: "An unexpected error occurred.",
         trace: {
           method,
           context: {
-            error: error.message,
+            originalError: error.message,
             stack: error.stack,
           },
         },

@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { responseUtil } from '@work-whiz/utils';
-import { validateInput } from '@work-whiz/validators';
-import { config } from '@work-whiz/configs/config';
+import { responseUtil } from '@/utils';
+import { validateInput } from '@talentry/validation';
+import { config } from '@/configs/config';
 
 class AuthenticationMiddleware {
   private static instance: AuthenticationMiddleware;

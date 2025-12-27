@@ -1,12 +1,25 @@
-import { z } from 'zod';
-import { passwordSchema } from '../shared/password.schema';
+import { z } from "zod";
 
 /**
- * Reset password schema
- * Requires new password
+ * Schema for reset password request
  */
-export const resetPasswordSchema = z.object({
-  password: passwordSchema,
-});
+export const ResetPasswordSchema = z
+  .object({
+    token: z
+      .string({ required_error: "Reset token is required" })
+      .min(1, { message: "Reset token is required" }),
+    password: z
+      .string({ required_error: "Password is required" })
+      .min(8, { message: "Password must be at least 8 characters" })
+      .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+      .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+      .regex(/[0-9]/, { message: "Password must contain at least one number" }),
+    confirmPassword: z
+      .string({ required_error: "Confirm password is required" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
-export type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
+export type ResetPassword = z.infer<typeof ResetPasswordSchema>;

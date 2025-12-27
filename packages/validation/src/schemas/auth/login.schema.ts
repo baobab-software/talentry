@@ -1,14 +1,15 @@
-import { z } from 'zod';
-import { emailSchema } from '../shared/email.schema';
-import { passwordSchema } from '../shared/password.schema';
+import { z } from "zod";
 
 /**
- * Login schema
- * Requires email and password
+ * Schema for user login
  */
-export const loginSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
+export const LoginSchema = z.object({
+  email: z
+    .string({ required_error: "Email is required" })
+    .email({ message: "Please provide a valid email address" }),
+  password: z
+    .string({ required_error: "Password is required" })
+    .min(6, { message: "Password must be at least 6 characters" }),
 });
 
-export type LoginData = z.infer<typeof loginSchema>;
+export type Login = z.infer<typeof LoginSchema>;

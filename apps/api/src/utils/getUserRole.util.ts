@@ -1,18 +1,18 @@
-import { Role } from '@work-whiz/types';
+import { UserRole } from '@/generated/prisma';
 import { Request } from 'express';
 
 interface RoleDomainConfig {
   subdomain: string;
-  role: Role;
+  role: UserRole;
 }
 
 const ROLE_CONFIGS: RoleDomainConfig[] = [
-  { subdomain: 'admin', role: Role.ADMIN },
-  { subdomain: 'www', role: Role.CANDIDATE },
-  { subdomain: 'employer', role: Role.EMPLOYER },
+  { subdomain: 'admin', role: UserRole.ADMIN },
+  { subdomain: 'www', role: UserRole.SEEKER },
+  { subdomain: 'employer', role: UserRole.COMPANY },
 ];
 
-export const getUserRole = (req: Request): Role | undefined => {
+export const getUserRole = (req: Request): UserRole | undefined => {
   const host = req.get('host')?.toLowerCase();
   if (!host) return undefined;
 

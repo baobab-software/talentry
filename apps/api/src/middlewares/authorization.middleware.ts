@@ -1,7 +1,8 @@
-import { getUserRole, jwtUtil, responseUtil } from '@work-whiz/utils';
+import { getUserRole, jwtUtil, responseUtil } from '@/utils';
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { IDecodedJwtToken } from '@work-whiz/interfaces';
+import { IDecodedJwtToken, JwtType } from '@/interfaces';
+import { UserRole } from '@/generated/prisma';
 
 /**
  * Authorization middleware for handling role-based access control and password operations
@@ -31,17 +32,16 @@ class AuthorizationMiddleware {
    * @param {Request} req - Express request object
    * @param {Response} res - Express response object
    * @param {NextFunction} next - Express next function
-   * @param {'password_setup' | 'password_reset'} tokenType - Type of password operation
    * @returns {Promise<void>}
    */
   private handlePasswordOperation = async (
     req: Request,
     res: Response,
     next: NextFunction,
-    tokenType: 'password_setup' | 'password_reset',
+    tokenType: JwtType
   ): Promise<void> => {
     try {
-      const role = getUserRole(req);
+      const role = UserRole.SEEKER //getUserRole(req);
       const { token } = req.body;
 
       const verified = await jwtUtil.verify({
@@ -77,7 +77,8 @@ class AuthorizationMiddleware {
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {
         const accessToken = req.cookies['access_token'];
-
+        console.debug('Access token from cookies:', { accessToken });
+        
         if (!accessToken) {
           return responseUtil.sendError(res, {
             message: 'Access token is missing',
@@ -89,6 +90,7 @@ class AuthorizationMiddleware {
           accessToken,
         ) as IDecodedJwtToken;
 
+        console.debug('Decoded token:', { decodedToken });
         if (!decodedToken) {
           return responseUtil.sendError(res, {
             message: 'Invalid access token',
@@ -116,27 +118,14 @@ class AuthorizationMiddleware {
           });
         }
 
+        req.app.locals.userId = verifiedToken.id;
+
         next();
       } catch (error) {
         next(error);
       }
     };
 
-  /**
-   * Middleware to authorize password setup operations
-   * Validates password setup token and required fields
-   * @param {Request} req - Express request object
-   * @param {Response} res - Express response object
-   * @param {NextFunction} next - Express next function
-   * @returns {Promise<void>}
-   */
-  public authorizePasswordSetup = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    await this.handlePasswordOperation(req, res, next, 'password_setup');
-  };
 
   /**
    * Middleware to authorize password reset operations
@@ -151,7 +140,7 @@ class AuthorizationMiddleware {
     res: Response,
     next: NextFunction,
   ): Promise<void> => {
-    await this.handlePasswordOperation(req, res, next, 'password_reset');
+    await this.handlePasswordOperation(req, res, next, JwtType.PASSWORD_RESET);
   };
 }
 

@@ -1,52 +1,25 @@
-import * as jwt from 'jsonwebtoken';
+import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 
-import { config } from '@work-whiz/configs/config';
-import { IJwtToken, IDecodedJwtToken } from '@work-whiz/interfaces';
-import { JwtType } from '@work-whiz/types';
+import { config } from "@/configs/config";
+import { JwtType } from "@/interfaces";
+import { UserRole } from "@/generated/prisma";
 
-const signAsync = (
-  payload: string | object | Buffer,
-  secretOrPrivateKey: jwt.Secret,
-  options?: jwt.SignOptions,
-): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    jwt.sign(payload, secretOrPrivateKey, options || {}, (err, token) => {
-      if (err || !token) {
-        return reject(err || new Error('Token generation failed'));
-      }
-      resolve(token);
-    });
-  });
-};
+interface GenerateParams {
+  id: string;
+  role: UserRole;
+  type: JwtType;
+}
 
-const verifyAsync = <T>(
-  token: string,
-  secretOrPublicKey: jwt.Secret,
-  options?: jwt.VerifyOptions,
-): Promise<T> => {
-  return new Promise((resolve, reject) => {
-    jwt.verify(token, secretOrPublicKey, options || {}, (err, decoded) => {
-      if (err || !decoded) {
-        return reject(err || new Error('Token verification failed'));
-      }
-      resolve(decoded as T);
-    });
-  });
-};
+interface VerifyParams {
+  token: string;
+  role: UserRole;
+  type: JwtType | string;
+}
 
-export default class JwtUtil {
+class JwtUtil {
   private static instance: JwtUtil;
-  private readonly expirationTimes: Record<JwtType, number>;
 
-  private constructor() {
-    this.expirationTimes = {
-      account_verification: 10 * 60, // 10 minutes in seconds
-      access: 15 * 60, // 15 minutes in seconds
-      refresh: 7 * 24 * 60 * 60, // 7 days in seconds
-      password_setup: 30 * 60, // 15 minutes in seconds
-      password_reset: 30 * 60, // 15 minutes in seconds
-    };
-  }
+  private constructor() {}
 
   public static getInstance(): JwtUtil {
     if (!JwtUtil.instance) {
@@ -55,42 +28,140 @@ export default class JwtUtil {
     return JwtUtil.instance;
   }
 
-  private getJwtKey(role: string, secretKeyType: JwtType): string {
-    const jwtKey = config?.authentication?.jwt?.[role]?.[secretKeyType];
-    if (!jwtKey) {
-      throw new Error(
-        `JWT secret key not found for role: ${role}, type: ${secretKeyType}`,
-      );
+  /**
+   * Gets the JWT secret key based on role and token type
+   */
+  private getJwtKey(role: UserRole, type: JwtType | string): string {
+    const jwtConfig = config.authentication.jwt;
+
+    // Normalize the type to match JwtType enum
+    const normalizedType = type.toString().toUpperCase() as keyof typeof JwtType;
+    const jwtType = JwtType[normalizedType] || type;
+
+    // Get role-specific config or fall back to default
+    const roleKey = role.toLowerCase() as keyof typeof jwtConfig;
+    const roleConfig = jwtConfig[roleKey];
+
+    if (!roleConfig || typeof roleConfig !== "object") {
+      // Fall back to a default secret if role-specific config doesn't exist
+      const defaultSecret = process.env.JWT_SECRET;
+      if (defaultSecret) {
+        return defaultSecret;
+      }
+      throw new Error(`JWT configuration not found for role: ${role}`);
     }
-    return jwtKey;
-  }
 
-  private getTokenExpiration(jwtType: JwtType): number {
-    return this.expirationTimes[jwtType] ?? 0;
-  }
+    // Get the secret based on token type
+    let secret: string | undefined;
 
-  public async generate(payload: IJwtToken): Promise<string> {
-    const jwtKey = this.getJwtKey(payload.role, payload.type);
-    const expiresIn = this.getTokenExpiration(payload.type);
-
-    if (!expiresIn) {
-      throw new Error(`Invalid JWT token type: ${payload.type}`);
+    switch (jwtType) {
+      case JwtType.ACCESS:
+        secret = (roleConfig as { accessTokenSecret?: string }).accessTokenSecret;
+        break;
+      case JwtType.REFRESH:
+        secret = (roleConfig as { refreshTokenSecret?: string }).refreshTokenSecret;
+        break;
+      case JwtType.PASSWORD_RESET:
+        secret = (roleConfig as { passwordResetTokenSecret?: string }).passwordResetTokenSecret;
+        break;
+      default:
+        // Try to get a generic secret
+        secret = (roleConfig as { accessTokenSecret?: string }).accessTokenSecret;
     }
 
-    return signAsync(payload, jwtKey, { expiresIn });
+    if (!secret) {
+      // Fall back to default JWT_SECRET
+      const defaultSecret = process.env.JWT_SECRET;
+      if (defaultSecret) {
+        return defaultSecret;
+      }
+      throw new Error(`JWT secret key not found for role: ${role}, type: ${type}`);
+    }
+
+    return secret;
   }
 
-  public async verify(payload: {
-    role: string;
-    token: string;
-    type: JwtType;
-  }): Promise<IDecodedJwtToken> {
-    const jwtKey = this.getJwtKey(payload.role, payload.type);
-    return verifyAsync<IDecodedJwtToken>(payload.token, jwtKey);
+  /**
+   * Gets the token expiration based on role and token type
+   */
+  private getExpiration(role: UserRole, type: JwtType): string {
+    const jwtConfig = config.authentication.jwt;
+    const roleKey = role.toLowerCase() as keyof typeof jwtConfig;
+    const roleConfig = jwtConfig[roleKey];
+
+    if (!roleConfig || typeof roleConfig !== "object") {
+      // Default expirations
+      switch (type) {
+        case JwtType.ACCESS:
+          return "15m";
+        case JwtType.REFRESH:
+          return "7d";
+        case JwtType.PASSWORD_RESET:
+          return "15m";
+        default:
+          return "15m";
+      }
+    }
+
+    switch (type) {
+      case JwtType.ACCESS:
+        return (roleConfig as { accessTokenExpiration?: string }).accessTokenExpiration || "15m";
+      case JwtType.REFRESH:
+        return (roleConfig as { refreshTokenExpiration?: string }).refreshTokenExpiration || "7d";
+      case JwtType.PASSWORD_RESET:
+        return (roleConfig as { passwordResetTokenExpiration?: string }).passwordResetTokenExpiration || "15m";
+      default:
+        return "15m";
+    }
   }
 
-  public decode(token: string): IDecodedJwtToken | null {
-    return jwt.decode(token) as IDecodedJwtToken | null;
+  /**
+   * Generates a JWT token
+   */
+  public async generate({ id, role, type }: GenerateParams): Promise<string> {
+    const secret = this.getJwtKey(role, type);
+    const expiresIn = this.getExpiration(role, type);
+
+    const payload = {
+      id,
+      role,
+      type,
+    };
+
+    const options: SignOptions = { expiresIn: expiresIn as SignOptions["expiresIn"] };
+
+    return jwt.sign(payload, secret, options);
+  }
+
+  /**
+   * Verifies a JWT token
+   */
+  public async verify({ token, role, type }: VerifyParams): Promise<JwtPayload> {
+    const secret = this.getJwtKey(role, type);
+
+    try {
+      const decoded = jwt.verify(token, secret) as JwtPayload;
+      return decoded;
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new Error("Token has expired");
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new Error("Invalid token");
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Decodes a JWT token without verification
+   */
+  public decode(token: string): JwtPayload | null {
+    try {
+      return jwt.decode(token) as JwtPayload | null;
+    } catch {
+      return null;
+    }
   }
 }
 

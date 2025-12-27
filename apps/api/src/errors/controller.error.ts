@@ -1,6 +1,6 @@
-import { StatusCodes } from 'http-status-codes';
-import { IServiceErrorDetails } from '@work-whiz/interfaces';
-import { logger } from '@work-whiz/utils/logger';
+import { StatusCodes } from "http-status-codes";
+import { IServiceErrorDetails } from "@/interfaces";
+import { logger } from "@/utils";
 
 export class ControllerError extends Error {
   public readonly statusCode: number;
@@ -10,10 +10,10 @@ export class ControllerError extends Error {
 
   constructor(statusCode: number, details: IServiceErrorDetails | string) {
     const normalizedDetails: IServiceErrorDetails =
-      typeof details === 'string' ? { message: details } : details;
+      typeof details === "string" ? { message: details } : details;
 
     super(normalizedDetails.message);
-    this.name = 'ControllerError';
+    this.name = "ControllerError";
     this.statusCode = statusCode;
     this.timestamp = new Date();
     this.shouldLog = this.determineIfShouldLog(statusCode);
@@ -55,9 +55,9 @@ export class ControllerError extends Error {
     };
 
     if (this.statusCode >= StatusCodes.INTERNAL_SERVER_ERROR) {
-      logger.error('Controller Error', logData);
+      logger.error("Controller Error", logData);
     } else {
-      logger.warn('Controller Warning', logData);
+      logger.warn("Controller Warning", logData);
     }
   }
 
@@ -74,7 +74,7 @@ export class ControllerError extends Error {
   public static fromError(
     statusCode: number,
     error: unknown,
-    additionalInfo?: Omit<IServiceErrorDetails, 'message' | 'originalError'>,
+    additionalInfo?: Omit<IServiceErrorDetails, "message" | "originalError">
   ): ControllerError {
     const message = error instanceof Error ? error.message : String(error);
 

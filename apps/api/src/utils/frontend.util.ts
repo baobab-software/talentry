@@ -1,5 +1,5 @@
-import { config } from '@work-whiz/configs/config';
-import { Role } from '@work-whiz/types';
+import { config } from '@/configs/config';
+import { Role } from '@/types';
 
 /**
  * Maps user roles to their corresponding frontend URLs from the configuration.

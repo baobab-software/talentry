@@ -1,32 +1,21 @@
-import 'reflect-metadata';
-import '@work-whiz/queues/workers/authentication.worker';
-import dotenv from 'dotenv';
-import http from 'http';
-import ip from 'ip';
-import os from 'os';
-import cluster from 'cluster';
-import { Application } from 'express';
-import { cleanEnv, num, str } from 'envalid';
-import { logger } from '@work-whiz/utils';
-import { sequelize } from '@work-whiz/libs';
-import { associateModels } from '@work-whiz/models/associate';
+import "reflect-metadata";
+import "@/queues/workers/authentication.worker";
+import dotenv from "dotenv";
+import http from "http";
+import ip from "ip";
+import os from "os";
+import cluster from "cluster";
+import { Application } from "express";
+import { cleanEnv, num, str } from "envalid";
+import { logger } from "@/utils";
+import {
+  prisma,
+  testDatabaseConnection,
+  getDatabaseStatus,
+} from "@/libs/prisma";
+import { IServerOptions } from "@/interfaces";
 
 dotenv.config();
-
-/**
- * Server configuration options
- */
-interface ServerOptions {
-  port?: number;
-  syncDatabase?: boolean;
-  forceSync?: boolean;
-  enableClusterMode?: boolean;
-  enableHealthCheck?: boolean;
-  rateLimitOptions?: {
-    windowMs?: number;
-    max?: number;
-  };
-}
 
 /**
  * Validates and cleans environment variables
@@ -34,10 +23,10 @@ interface ServerOptions {
 const env = cleanEnv(process.env, {
   PORT: num({ default: 8080 }),
   NODE_ENV: str({
-    choices: ['development', 'test', 'production'],
-    default: 'development',
+    choices: ["development", "test", "production"],
+    default: "development",
   }),
-  POSTGRES_HOST: str({ default: 'localhost' }),
+  POSTGRES_HOST: str({ default: "localhost" }),
   POSTGRES_PORT: num({ default: 5432 }),
   POSTGRES_DATABASE_NAME: str(),
   POSTGRES_USERNAME: str(),
@@ -51,19 +40,19 @@ const env = cleanEnv(process.env, {
  */
 const handleServerError = (
   error: NodeJS.ErrnoException,
-  port: number,
+  port: number
 ): void => {
-  const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
+  const bind = typeof port === "string" ? `Pipe ${port}` : `Port ${port}`;
 
   switch (error.code) {
-    case 'EACCES':
+    case "EACCES":
       logger.error(`${bind} requires elevated privileges`);
       break;
-    case 'EADDRINUSE':
+    case "EADDRINUSE":
       logger.error(`${bind} is already in use`);
       break;
     default:
-      logger.error('Server error', {
+      logger.error("Server error", {
         error: error.message,
         stack: error.stack,
       });
@@ -83,47 +72,45 @@ const setupGracefulShutdown = (server: http.Server): void => {
     });
 
     try {
-      if (sequelize) {
-        await sequelize.close();
-        logger.info('Database connection closed');
-      }
+      await prisma.$disconnect();
+      logger.info("Database connection closed");
 
-      server.close(err => {
+      server.close((err) => {
         if (err) {
-          logger.error('Error during server close', { error: err });
+          logger.error("Error during server close", { error: err });
           process.exit(1);
         }
-        logger.info('Server closed');
+        logger.info("Server closed");
         process.exit(0);
       });
 
       setTimeout(() => {
-        logger.error('Forcing shutdown after timeout');
+        logger.error("Forcing shutdown after timeout");
         process.exit(1);
       }, 10000).unref();
     } catch (error) {
-      logger.error('Error during shutdown', {
+      logger.error("Error during shutdown", {
         error: error instanceof Error ? error.message : error,
       });
       process.exit(1);
     }
   };
 
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-  process.on('SIGINT', () => shutdown('SIGINT'));
-  process.on('SIGQUIT', () => shutdown('SIGQUIT'));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGQUIT", () => shutdown("SIGQUIT"));
 
-  process.on('uncaughtException', error => {
-    logger.error('Uncaught exception', {
+  process.on("uncaughtException", (error) => {
+    logger.error("Uncaught exception", {
       error: error.message,
       stack: error.stack,
     });
-    shutdown('uncaughtException');
+    shutdown("uncaughtException");
   });
 
-  process.on('unhandledRejection', (reason, promise) => {
-    logger.error('Unhandled rejection at:', promise, 'reason:', reason);
-    shutdown('unhandledRejection');
+  process.on("unhandledRejection", (reason, promise) => {
+    logger.error("Unhandled rejection at:", promise, "reason:", reason);
+    shutdown("unhandledRejection");
   });
 };
 
@@ -133,22 +120,10 @@ const setupGracefulShutdown = (server: http.Server): void => {
  * @param {ServerOptions} [options] - Server configuration options
  * @returns {Promise<http.Server>} The created HTTP server instance
  * @throws {Error} If server fails to start or database connection fails
- *
- * @example
- * // Basic usage
- * await startServer(app);
- *
- * // With custom options
- * await startServer(app, {
- *   port: 3000,
- *   syncDatabase: true,
- *   forceSync: false,
- *   enableClusterMode: true
- * });
  */
 export const startServer = async (
   app: Application,
-  options: ServerOptions = {},
+  options: IServerOptions = {}
 ): Promise<http.Server> => {
   const {
     port = env.PORT,
@@ -161,7 +136,7 @@ export const startServer = async (
   } = options;
 
   // Only enable cluster mode in production
-  const isProduction = env.NODE_ENV === 'production';
+  const isProduction = env.NODE_ENV === "production";
   if (enableClusterMode && isProduction && cluster.isPrimary) {
     const numCPUs = os.cpus().length;
     logger.info(`Master ${process.pid} is running with ${numCPUs} workers`);
@@ -170,55 +145,62 @@ export const startServer = async (
       cluster.fork();
     }
 
-    cluster.on('exit', (worker, code, signal) => {
+    cluster.on("exit", (worker, code, signal) => {
       logger.warn(
-        `Worker ${worker.process.pid} died with code ${code} and signal ${signal}`,
+        `Worker ${worker.process.pid} died with code ${code} and signal ${signal}`
       );
-      logger.info('Starting a new worker');
+      logger.info("Starting a new worker");
       cluster.fork();
     });
 
     return http.createServer((req, res) => {
       res.writeHead(500);
-      res.end('Requests should be handled by worker processes');
+      res.end("Requests should be handled by worker processes");
     });
   }
 
   try {
-    await sequelize.authenticate();
+    // Test database connection with retry logic
+    const isConnected = await testDatabaseConnection(3, 2000);
 
-    associateModels();
+    if (!isConnected) {
+      throw new Error("Failed to connect to database after multiple attempts");
+    }
 
-    await sequelize.sync({ force: false, alter: true });
-
-    logger.info('Database connection established successfully', {
+    logger.info("Database connection established successfully", {
       dbHost: env.POSTGRES_HOST,
       dbName: env.POSTGRES_DATABASE_NAME,
     });
 
     if (enableHealthCheck) {
-      app.get('/health', (req, res) => {
+      app.get("/health", async (req, res) => {
+        const dbStatus = await getDatabaseStatus();
+
         const healthData = {
-          status: 'OK',
+          status: dbStatus.connected ? "OK" : "DEGRADED",
           services: [
-            { name: 'Database', status: 'OK', responseTime: '24ms' },
-            { name: 'API', status: 'OK', responseTime: '156ms' },
-            { name: 'Cache', status: 'WARNING', responseTime: '342ms' },
+            {
+              name: "Database",
+              status: dbStatus.connected ? "OK" : "ERROR",
+              responseTime: dbStatus.latency ? `${dbStatus.latency}ms` : "N/A",
+              error: dbStatus.error,
+            },
+            { name: "Cache", status: "OK", responseTime: "0ms" },
           ],
           uptime: process.uptime(),
           timestamp: new Date().toISOString(),
         };
 
-        res.render('health', healthData);
+        res.render("health", healthData);
       });
     }
 
     if (rateLimitOptions) {
-      const { default: rateLimit } = await import('express-rate-limit');
+      const { default: rateLimit } = await import("express-rate-limit");
       const limiter = rateLimit({
         windowMs: rateLimitOptions.windowMs,
         max: rateLimitOptions.max,
-        message: 'Too many requests from this IP, please try again later',
+        message: "Too many requests from this IP, please try again later",
       });
       app.use(limiter as any);
     }
@@ -228,7 +210,7 @@ export const startServer = async (
     return new Promise<http.Server>((resolve, reject) => {
       server.listen(port, () => {
         const host = `http://${ip.address()}:${port}`;
-        logger.info('Server started successfully', {
+        logger.info("Server started successfully", {
           host,
           platform: os.platform(),
           pid: process.pid,
@@ -242,13 +224,13 @@ export const startServer = async (
         resolve(server);
       });
 
-      server.on('error', (error: NodeJS.ErrnoException) => {
+      server.on("error", (error: NodeJS.ErrnoException) => {
         handleServerError(error, port);
         reject(error);
       });
     });
   } catch (error) {
-    logger.error('Failed to start server', {
+    logger.error("Failed to start server", {
       error:
         error instanceof Error
           ? {
