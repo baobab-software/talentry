@@ -1,2 +1,7 @@
-node_modules
-.turbo
+apps/backend/src/generated/
+node_modules/
+.turbo/
+dist/
+apps/web-admin/.turbo/
+packages/validation/.turbo/
+packages/types/.turbo/
