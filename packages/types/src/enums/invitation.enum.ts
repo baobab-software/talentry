@@ -1,0 +1,13 @@
+export enum InvitationType {
+  COMPANY_MEMBER = "COMPANY_MEMBER",
+  ADMIN_USER = "ADMIN_USER",
+}
+
+export enum InvitationStatus {
+  PENDING = "PENDING",
+  ACCEPTED = "ACCEPTED",
+  DECLINED = "DECLINED",
+  EXPIRED = "EXPIRED",
+  CANCELLED = "CANCELLED",
+  REVOKED = "REVOKED",
+}
