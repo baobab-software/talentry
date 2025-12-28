@@ -1,6 +1,0 @@
-{
-  "watch": ["src"],
-  "ext": "ts,json",
-  "ignore": ["dist"],
-  "exec": "npx env-cmd -f ./.env tsx src/main.ts"
-}
