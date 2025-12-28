@@ -6,7 +6,7 @@ import { LoginSchema, type Login } from "../../schemas/auth/login.schema";
  * @param data - The login data to validate
  * @returns Validation result with parsed data or errors
  */
-export const validateLogin = (data: unknown) => {
+export const validateLogin = (data: Login) => {
   return LoginSchema.safeParse(data);
 };
 
