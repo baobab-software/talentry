@@ -1,19 +1,18 @@
 import { ConfigContext, ExpoConfig } from "expo/config";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 const IS_DEV = process.env.APP_VARIANT === "development";
 const IS_PREVIEW = process.env.APP_VARIANT === "preview";
 
 const getUniqueIdentifier = () => {
   if (IS_DEV) {
-    return "com.baobab_software.talentry.dev";
+    return "com.baobabsoftware.talentry.dev";
   }
 
   if (IS_PREVIEW) {
-    return "com.baobab_software.talentry.preview";
+    return "com.baobabsoftware.talentry.preview";
   }
 
-  return "com.baobab_software.talentry";
+  return "com.baobabsoftware.talentry";
 };
 
 const getAppName = () => {
@@ -30,32 +29,40 @@ const getAppName = () => {
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
+
   name: getAppName(),
   slug: "talentry",
   version: "1.0.0",
+
   orientation: "portrait",
-  icon: "./assets/images/icon.png",
-  scheme: "mobile",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
+
+  icon: "./assets/images/icon.png",
+  scheme: "mobile",
+
   ios: {
     supportsTablet: true,
+    bundleIdentifier: getUniqueIdentifier(),
   },
+
   android: {
+    package: getUniqueIdentifier(),
     adaptiveIcon: {
-      backgroundColor: "#E6F4FE",
       foregroundImage: "./assets/images/android-icon-foreground.png",
       backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
+      backgroundColor: "#E6F4FE",
     },
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
-    package: getUniqueIdentifier(),
   },
+
   web: {
     output: "static",
     favicon: "./assets/images/favicon.png",
   },
+
   plugins: [
     "expo-router",
     [
@@ -71,16 +78,21 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
   ],
+
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
   },
+
   extra: {
     router: {},
     eas: {
       projectId: "79c33ca8-d53b-4e5b-98f1-96603c1dc376",
     },
-    apiUrl: process.env.API_URL || "https://1cfa572a4044.ngrok-free.app/api",
+    apiUrl:
+      process.env.API_URL ||
+      "https://1cfa572a4044.ngrok-free.app/api",
   },
+
   owner: "baobab_software",
 });
