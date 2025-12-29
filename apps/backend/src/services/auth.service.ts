@@ -286,6 +286,10 @@ class AuthenticationService extends BaseService {
         }),
       ]);
 
+      const REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60; // 7 days in seconds
+      const refreshTokenCacheKey = `refresh_token:${user.role}:${user.id}:${refreshToken}`;
+      await cacheUtil.set(refreshTokenCacheKey, true, REFRESH_TOKEN_EXPIRATION);
+
       logger.info(`Account verified successfully for email: ${email}`);
 
       return { accessToken, refreshToken };
@@ -347,6 +351,10 @@ class AuthenticationService extends BaseService {
           type: JwtType.REFRESH,
         }),
       ]);
+
+      const REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60; // 7 days in seconds
+      const refreshTokenCacheKey = `refresh_token:${user.role}:${user.id}:${refreshToken}`;
+      await cacheUtil.set(refreshTokenCacheKey, true, REFRESH_TOKEN_EXPIRATION);
 
       logger.info(`Login successful for email: ${email}`);
 

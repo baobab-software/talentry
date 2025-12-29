@@ -12,9 +12,10 @@ import { ExpressAdapter } from "@bull-board/express";
 import swaggerUi from "swagger-ui-express";
 
 import { swaggerSpec } from "@/configs/swgger.config";
-import { AuthenticationRoutes } from "@/routes";
+import { AuthenticationRoutes, UserRoutes } from "@/routes";
 import { authenticationQueue } from "@/queues";
 import rateLimit from "express-rate-limit";
+import { authenticationMiddleware } from "./authentication.middleware";
 
 export const configureMiddlewares = async (app: Application): Promise<void> => {
   const serverAdapter = new ExpressAdapter();
@@ -101,6 +102,10 @@ export const configureMiddlewares = async (app: Application): Promise<void> => {
   // Authentication middleware
   // app.use(authenticationMiddleware.isAuthenticated);
 
-  // REST API Routes
   app.use("/auth", new AuthenticationRoutes().init());
+  app.use(
+    "/users",
+    authenticationMiddleware.authenticateUser.bind(authenticationMiddleware),
+    new UserRoutes().init()
+  );
 };
