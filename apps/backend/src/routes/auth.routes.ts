@@ -109,7 +109,7 @@ export class AuthenticationRoutes {
       this.router
         /**
          * @swagger
-         * //v1/auth/register:
+         * /auth/register:
          *   post:
          *     summary: Register a new user (admin, candidate, or employer)
          *     tags: [Auth]
@@ -144,7 +144,7 @@ export class AuthenticationRoutes {
 
         /**
          * @swagger
-         * //v1/auth/verify-account:
+         * /auth/verify-account:
          *   post:
          *     summary: Verify account with OTP
          *     tags: [Auth]
@@ -209,7 +209,7 @@ export class AuthenticationRoutes {
 
         /**
          * @swagger
-         * //v1/auth/refresh-token:
+         * /auth/refresh-token:
          *   post:
          *     summary: Refresh access token using refresh token and CSRF token
          *     tags: [Auth]
@@ -233,7 +233,7 @@ export class AuthenticationRoutes {
 
         /**
          * @swagger
-         * //v1/auth/logout:
+         * /auth/logout:
          *   delete:
          *     summary: Log out the current user
          *     tags: [Auth]
@@ -247,13 +247,15 @@ export class AuthenticationRoutes {
         .delete(
           "/logout",
           logoutLimiter as unknown as RequestHandler,
-          authenticationMiddleware.isAuthenticated,
+          authenticationMiddleware.authenticateUser.bind(
+            authenticationMiddleware
+          ),
           authenticationController.logout
         )
 
         /**
          * @swagger
-         * //v1/auth/forgot-password:
+         * /auth/forgot-password:
          *   post:
          *     summary: Send a password reset OTP to user's email
          *     tags: [Auth]
@@ -277,7 +279,7 @@ export class AuthenticationRoutes {
 
         /**
          * @swagger
-         * //v1/auth/forgot-password/verify-otp:
+         * /auth/forgot-password/verify-otp:
          *   post:
          *     summary: Verify OTP and receive password reset token
          *     tags: [Auth]
@@ -318,7 +320,7 @@ export class AuthenticationRoutes {
 
         /**
          * @swagger
-         * //v1/auth/password-reset:
+         * /auth/password-reset:
          *   patch:
          *     summary: Reset password using token
          *     tags: [Auth]

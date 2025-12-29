@@ -5,3 +5,6 @@ dist/
 apps/web-admin/.turbo/
 packages/validation/.turbo/
 packages/types/.turbo/
+packages/types/dist/*
+packages/validation/turbo/
+packages/types/dist
