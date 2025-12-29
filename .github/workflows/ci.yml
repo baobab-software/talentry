@@ -2,9 +2,13 @@ name: CI
 
 on:
   pull_request:
+    branches:
+      - main
+      - test
   push:
     branches:
       - main
+      - test
 
 permissions:
   actions: read
@@ -15,20 +19,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the repo
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # Setup Node.js
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
+      # Install dependencies
       - name: Install dependencies
         run: npm ci
 
+      # Cache Turborepo outputs
       - name: Cache Turborepo
         uses: actions/cache@v4
         with:
@@ -37,8 +45,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
+      # Run tests
       - name: Run tests for api, mobile, web
         run: npx turbo run test --filter=backend... --filter=mobile... --filter=web...
 
+      # Build projects
       - name: Build api, mobile, web
         run: npx turbo run build --filter=backend... --filter=mobile... --filter=web...
