@@ -2,7 +2,7 @@ apps/backend/src/generated/
 node_modules/
 .turbo/
 dist/
-apps/web-admin/.turbo/
+apps/web/.turbo/
 packages/validation/.turbo/
 packages/types/.turbo/
 packages/types/dist/*
